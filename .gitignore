@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 dist/
 .pnpm-store/
 
@@ -21,3 +21,6 @@ dist-electron/
 .vite-preview*.log
 .vite-smoke.pid
 release/
+.vercel
+.env.local
+
