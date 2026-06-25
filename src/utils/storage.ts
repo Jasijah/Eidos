@@ -8,7 +8,9 @@ export const defaultProfile: UserProfile = {
   name: 'Mina Chen',
   role: 'Product lead',
   avatarStyle: 'studio',
-  trainingComplete: false
+  trainingComplete: false,
+  sexualOrientation: 'prefer-not-to-say',
+  avatarPresentation: 'neutral'
 };
 
 export function loadProfile(): UserProfile {
@@ -23,6 +25,11 @@ export function loadProfile(): UserProfile {
 
 export function saveProfile(profile: UserProfile): void {
   window.localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+}
+
+export function clearProfile(storage: Storage = window.localStorage): UserProfile {
+  storage.removeItem(PROFILE_KEY);
+  return { ...defaultProfile };
 }
 
 export function loadBehaviorProfile(storage: Storage = window.localStorage): UserBehaviorProfile {

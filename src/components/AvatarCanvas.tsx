@@ -18,7 +18,7 @@ export function AvatarCanvas({ frame, style, label, realism, identity, outputSet
   const rendererRef = useRef<MountedAvatarRenderer | undefined>(undefined);
   const identityId = identity ? ('avatarId' in identity ? identity.avatarId : identity.id) : undefined;
   const useVrm = Boolean(identity && 'provider' in identity && identity.provider === 'vrm');
-  const usePortrait = Boolean(identity && 'provider' in identity && identity.provider === 'local-portrait');
+  const usePortrait = !identity || Boolean('provider' in identity && identity.provider === 'local-portrait');
   const backgroundKey = `${outputSettings?.background ?? 'professional-office'}:${outputSettings?.solidColor ?? ''}`;
 
   useEffect(() => {

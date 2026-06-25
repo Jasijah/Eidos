@@ -29,7 +29,7 @@ const ASSETS: Record<AvatarStyle, AvatarAssetDescriptor> = {
 export class AvatarAssetProvider {
   getAsset(style: AvatarStyle, identity?: AnyIdentity): AvatarAssetDescriptor {
     const base = ASSETS[style];
-    if (!identity) return base;
+    if (!identity) return { ...base, id: 'eidos-default-presence', provider: 'local-portrait', displayName: 'Eidos default professional presence', portraitUrl: '/brand/eidos-default-presence.png', supportsBlendshapes: false, supportsRiggedBody: false };
     const beta = 'avatarId' in identity;
     return { ...base, id: beta ? identity.avatarId : identity.assetId, displayName: 'User identity-derived local avatar', provider: beta && identity.provider === 'local-portrait' ? 'local-portrait' : base.provider, portraitUrl: beta && identity.provider === 'local-portrait' ? identity.generatedAssetUrl : undefined, modelUrl: beta && identity.provider === 'vrm' ? identity.generatedAssetUrl : base.modelUrl, skinTone: identity.skinToneApproximation, hairTone: beta ? identity.hairApproximation.color : identity.hairColorApproximation };
   }

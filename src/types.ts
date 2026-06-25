@@ -2,6 +2,8 @@
 
 export type AvatarStyle = 'studio' | 'warm' | 'mono' | 'expressive';
 export type ProfileMaturity = 'untrained' | 'learning' | 'personalized';
+export type SexualOrientation = 'prefer-not-to-say' | 'straight' | 'gay' | 'lesbian' | 'bisexual' | 'pansexual' | 'asexual' | 'queer' | 'questioning' | 'self-describe';
+export type AvatarPresentation = 'neutral' | 'feminine' | 'masculine' | 'androgynous' | 'custom';
 export type VisemeShape = 'rest' | 'soft' | 'wide' | 'round' | 'closed';
 
 export interface UserProfile {
@@ -9,6 +11,9 @@ export interface UserProfile {
   role: string;
   avatarStyle: AvatarStyle;
   trainingComplete: boolean;
+  sexualOrientation: SexualOrientation;
+  sexualOrientationCustom?: string;
+  avatarPresentation: AvatarPresentation;
 }
 
 export interface GestureProfile {
