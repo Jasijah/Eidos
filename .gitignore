@@ -17,3 +17,7 @@ pnpm-debug.log*
 
 coverage/
 .vitest/
+dist-electron/
+.vite-preview*.log
+.vite-smoke.pid
+release/

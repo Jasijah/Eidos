@@ -1,0 +1,12 @@
+﻿import { ArrowRight, CameraOff, Check, CircleGauge, MonitorUp, Settings2 } from 'lucide-react';
+import { useState } from 'react';
+const steps = [
+  { title: 'Practice Voice-Only Mode', copy: 'Connect your real microphone. Eidos animates your Presence while your camera stays off.', icon: <CameraOff size={24} /> },
+  { title: 'Check Presence Quality', copy: 'Watch for natural blinking, restrained lip sync, and comfortable eye contact before a call.', icon: <CircleGauge size={24} /> },
+  { title: 'Route to your meeting', copy: 'Open the dedicated output and use OBS Virtual Camera in Zoom, Meet, Teams, or Discord.', icon: <MonitorUp size={24} /> },
+  { title: 'You stay in control', copy: 'Change intensity, export your data, or delete your avatar and behavior memory at any time.', icon: <Settings2 size={24} /> }
+];
+export function PresenceWalkthrough({ onNavigate, onComplete }: { onNavigate: (page: 'live' | 'output' | 'privacy') => void; onComplete: () => void }) {
+  const [index, setIndex] = useState(0); const item = steps[index]; const next = () => { if (index === steps.length - 1) { onNavigate('live'); onComplete(); return; } setIndex((value) => value + 1); };
+  return <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="walkthrough-title"><section className="walkthrough-surface"><div className="walkthrough-preview"><span>{item.icon}</span><strong>Practice room</strong><small>Camera off | Real microphone | Avatar Mode Active</small></div><div><p className="field-label">Presence walkthrough | {index + 1} of {steps.length}</p><h2 id="walkthrough-title">{item.title}</h2><p>{item.copy}</p>{index === 1 ? <button className="secondary-button" onClick={() => onNavigate('live')}><CircleGauge size={16} />Open live preview</button> : null}{index === 2 ? <button className="secondary-button" onClick={() => onNavigate('output')}><MonitorUp size={16} />Open virtual camera setup</button> : null}{index === 3 ? <button className="secondary-button" onClick={() => onNavigate('privacy')}><Settings2 size={16} />Review privacy controls</button> : null}<div className="onboarding-progress mt-6">{steps.map((_, i) => <span key={i} className={i <= index ? 'is-active' : ''} />)}</div><button className="primary-button" onClick={next}>{index === steps.length - 1 ? <><Check size={17} />Start practice session</> : <>Continue<ArrowRight size={17} /></>}</button></div></section></div>;
+}

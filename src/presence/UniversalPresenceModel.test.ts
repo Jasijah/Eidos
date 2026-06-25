@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { UniversalPresenceModel } from './UniversalPresenceModel';
 import { getBlendWeights, type UserBehaviorProfile } from './UserBehaviorProfile';
 
@@ -14,6 +14,10 @@ function sampleProfile(samples: number): UserBehaviorProfile {
     eyeContactPreference: 0.8,
     gestureEnergy: 0.8,
     postureStyle: 'relaxed',
+    trainingSessionCount: 1,
+    profileMaturity: 'learning',
+    qualityScore: 60,
+    updatedAt: new Date(0).toISOString(),
     samples
   };
 }

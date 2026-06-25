@@ -1,0 +1,10 @@
+import type { AvatarAssetDescriptor } from '../AvatarAssetProvider';
+import type { AvatarIdentityModel } from '../AvatarIdentityModel';
+import type { PhotorealisticAvatarProvider, PhotorealisticAvatarRequest } from '../PhotorealisticAvatarGenerator';
+export class LocalPhotorealPortraitProvider implements PhotorealisticAvatarProvider {
+  readonly id='local-portrait' as const; readonly displayName='Local Photoreal Portrait'; readonly available=true; readonly requiresThirdPartyProcessing=false;
+  async createAvatar(request:PhotorealisticAvatarRequest):Promise<AvatarIdentityModel>{const front=request.images.find(image=>image.role==='front')??request.images[0];const now=new Date().toISOString();return{avatarId:`portrait-${crypto.randomUUID()}`,displayName:request.displayName,sourceImages:request.consent.localStorage?request.images:request.images.map(image=>({...image,dataUrl:'',storedLocally:false})),generatedAssetUrl:front.dataUrl,provider:this.id,realismLevel:request.realismLevel,faceShapeApproximation:'unknown',skinToneApproximation:'#b98268',hairApproximation:{style:'unknown',color:'#211b19'},consentStatus:{imageProcessing:true,localStorage:request.consent.localStorage,thirdPartyProcessing:false,modelImprovement:false},createdAt:now,updatedAt:now};}
+  async updateAvatar(model:AvatarIdentityModel){return{...model,updatedAt:new Date().toISOString()};} async deleteAvatar(_model:AvatarIdentityModel):Promise<void>{return;}
+  async getAvatarAsset(model:AvatarIdentityModel):Promise<AvatarAssetDescriptor>{return{id:model.avatarId,provider:'local-portrait',displayName:model.displayName,skinTone:model.skinToneApproximation,hairTone:model.hairApproximation.color,jacketTone:'#24302f',shirtTone:'#e8eeeb',background:'professional-office',portraitUrl:model.generatedAssetUrl,supportsBlendshapes:false,supportsRiggedBody:false};}
+  status(){return{available:true,message:'On-device photo-derived talking portrait. No cloud upload or training.'};}
+}

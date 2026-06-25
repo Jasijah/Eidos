@@ -1,7 +1,7 @@
-export type PresenceMode = 'professional' | 'casual' | 'creator' | 'low-energy';
+﻿export type PresenceMode = 'professional' | 'casual' | 'creator' | 'low-energy';
 
 export type AvatarStyle = 'studio' | 'warm' | 'mono' | 'expressive';
-
+export type ProfileMaturity = 'untrained' | 'learning' | 'personalized';
 export type VisemeShape = 'rest' | 'soft' | 'wide' | 'round' | 'closed';
 
 export interface UserProfile {
@@ -28,6 +28,11 @@ export interface FaceTrackingSnapshot {
   blinking: boolean;
   smiling: boolean;
   headTilt: number;
+  gazeX?: number;
+  gazeY?: number;
+  expressionIntensity?: number;
+  confidence?: number;
+  source?: 'mediapipe' | 'fallback';
 }
 
 export interface AvatarFrame {

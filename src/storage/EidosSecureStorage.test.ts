@@ -1,0 +1,3 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { getSecureKeyBackend } from './EidosSecureStorage';
+describe('secure key backend',()=>{afterEach(()=>{delete window.eidosDesktop;vi.restoreAllMocks();});it('uses browser fallback without Electron',async()=>{await expect(getSecureKeyBackend()).resolves.toMatchObject({kind:'browser-fallback'});});it('reports OS protection through desktop bridge',async()=>{window.eidosDesktop={getSecureKeyStatus:vi.fn().mockResolvedValue({available:true,backend:'DPAPI'})} as never;await expect(getSecureKeyBackend()).resolves.toEqual({kind:'os-protected',label:'DPAPI'});});});

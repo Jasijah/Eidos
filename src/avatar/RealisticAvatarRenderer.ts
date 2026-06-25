@@ -1,85 +1,230 @@
-import type { AvatarFrame, AvatarStyle } from '../types';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { AvatarFrame } from '../types';
 import type { AvatarAssetDescriptor } from './AvatarAssetProvider';
 import type { ResolvedRealismProfile } from './RealismProfile';
-import { clamp } from './RealismProfile';
 
 export interface RealisticRenderInput {
   frame: AvatarFrame;
-  style: AvatarStyle;
   asset: AvatarAssetDescriptor;
   realism: ResolvedRealismProfile;
   label: string;
 }
 
 export class RealisticAvatarRenderer {
-  renderSvg(input: RealisticRenderInput): string {
-    const { asset, frame, realism } = input;
-    const eyeOpen = frame.blink ? 0.08 : 1 - (frame.eyeSquint ?? 0.06) * 0.28;
-    const gaze = clamp((frame.eyeContact ?? 0.65) - 0.5, -0.28, 0.28);
-    const headX = frame.headX * 34;
-    const headY = frame.headY * 22;
-    const tilt = frame.tilt * 9;
-    const shoulderShift = (frame.shoulderShift ?? 0) * 28;
-    const posture = (frame.posture ?? realism.postureLift) * -12;
-    const mouthWidth = 34 + (frame.viseme === 'wide' ? 10 : 0) - (frame.viseme === 'round' ? 6 : 0);
-    const mouthHeight = 3 + frame.mouthOpen * 34;
-    const smileLift = frame.smile * 16;
-    const browOffset = (frame.brow ?? 0) * -18;
-    const breathing = Math.sin(frame.idle * 5) * 1.8;
+  private scene = new THREE.Scene();
+  private camera = new THREE.PerspectiveCamera(28, 4 / 3, 0.1, 100);
+  private renderer?: THREE.WebGLRenderer;
+  private root = new THREE.Group();
+  private head = new THREE.Group();
+  private torso = new THREE.Group();
+  private leftEye = new THREE.Group();
+  private rightEye = new THREE.Group();
+  private leftLid?: THREE.Mesh;
+  private rightLid?: THREE.Mesh;
+  private mouth?: THREE.Mesh;
+  private jaw?: THREE.Mesh;
+  private brows: THREE.Mesh[] = [];
+  private resizeObserver?: ResizeObserver;
+  private disposed = false;
 
-    return `
-      <svg viewBox="0 0 720 540" role="img" aria-label="${escapeHtml(input.label)} realistic avatar preview" class="realistic-avatar-svg">
-        <defs>
-          <linearGradient id="studioBg" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stop-color="#f7faf8" />
-            <stop offset="0.58" stop-color="#e7efec" />
-            <stop offset="1" stop-color="#d7e1de" />
-          </linearGradient>
-          <radialGradient id="keyLight" cx="44%" cy="20%" r="58%">
-            <stop offset="0" stop-color="#ffffff" stop-opacity="0.88" />
-            <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
-          </radialGradient>
-          <filter id="feedBlur"><feGaussianBlur stdDeviation="10" /></filter>
-          <filter id="softDepth" x="-20%" y="-20%" width="140%" height="145%">
-            <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#15201f" flood-opacity="0.18" />
-          </filter>
-          <linearGradient id="skinShade" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stop-color="#f2c1a7" />
-            <stop offset="0.5" stop-color="${asset.skinTone}" />
-            <stop offset="1" stop-color="#9d6554" />
-          </linearGradient>
-        </defs>
-        <rect width="720" height="540" rx="0" fill="url(#studioBg)" />
-        <circle cx="165" cy="118" r="95" fill="#ffffff" opacity="0.52" filter="url(#feedBlur)" />
-        <circle cx="550" cy="118" r="120" fill="#cbd8d4" opacity="0.36" filter="url(#feedBlur)" />
-        <rect x="64" y="72" width="592" height="382" rx="34" fill="#ffffff" opacity="0.18" />
-        <rect width="720" height="540" fill="url(#keyLight)" />
-        <g transform="translate(${shoulderShift} ${posture + breathing})" filter="url(#softDepth)">
-          <path d="M224 482c20-92 78-142 136-142s116 50 136 142" fill="${asset.jacketTone}" />
-          <path d="M286 482c6-82 34-122 74-122s68 40 74 122" fill="${asset.shirtTone}" />
-          <path d="M300 358c10 28 30 43 60 43s50-15 60-43v-52H300v52Z" fill="${asset.skinTone}" />
-        </g>
-        <g transform="translate(${headX} ${headY + breathing}) rotate(${tilt} 360 236)" filter="url(#softDepth)">
-          <path d="M265 224c-12-92 36-158 98-158 72 0 111 61 94 162-18-64-55-97-103-97-44 0-75 31-89 93Z" fill="${asset.hairTone}" />
-          <path d="M260 230c0-88 40-142 101-142s101 54 101 142c0 76-42 138-101 138S260 306 260 230Z" fill="url(#skinShade)" />
-          <path d="M274 190c18-60 55-92 99-88 42 4 69 37 78 91-42-22-101-24-177-3Z" fill="${asset.hairTone}" opacity="0.98" />
-          <path d="M294 ${220 + browOffset}c20-11 39-12 57-3" stroke="#382a27" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.72" />
-          <path d="M374 ${217 + browOffset}c18-9 37-8 55 3" stroke="#382a27" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.72" />
-          <ellipse cx="323" cy="244" rx="18" ry="${10 * eyeOpen}" fill="#f7f3ee" />
-          <ellipse cx="399" cy="244" rx="18" ry="${10 * eyeOpen}" fill="#f7f3ee" />
-          <circle cx="${323 + gaze * 12}" cy="244" r="7" fill="#17201f" />
-          <circle cx="${399 + gaze * 12}" cy="244" r="7" fill="#17201f" />
-          <path d="M357 252c-2 21-8 35-19 47 13 6 31 5 43-2" stroke="#9e6656" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.72" />
-          <ellipse cx="360" cy="318" rx="${mouthWidth}" ry="${mouthHeight}" fill="#5b2424" opacity="0.9" />
-          <path d="M324 ${314 - smileLift}Q360 ${329 + smileLift * 0.35} 396 ${314 - smileLift}" stroke="#7b3130" stroke-width="8" stroke-linecap="round" fill="none" />
-          <ellipse cx="300" cy="276" rx="18" ry="12" fill="#d99883" opacity="0.22" />
-          <ellipse cx="421" cy="276" rx="18" ry="12" fill="#d99883" opacity="0.2" />
-        </g>
-        <rect x="20" y="20" width="680" height="500" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.42" />
-      </svg>`;
+  mount(container: HTMLElement, asset: AvatarAssetDescriptor): void {
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.08;
+    container.replaceChildren(this.renderer.domElement);
+    this.scene.background = new THREE.Color('#d8e1de');
+    this.scene.fog = new THREE.Fog('#d8e1de', 7, 12);
+    this.camera.position.set(0, 0.1, 7.2);
+    this.camera.lookAt(0, 0.15, 0);
+    this.scene.add(this.root);
+    this.addLighting();
+    this.addBackground(asset.background);
+    this.buildProceduralHuman(asset);
+    if (asset.modelUrl) void this.loadProviderModel(asset.modelUrl);
+    this.resizeObserver = new ResizeObserver(() => this.resize(container));
+    this.resizeObserver.observe(container);
+    this.resize(container);
   }
-}
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char] ?? char);
+  update(input: RealisticRenderInput): void {
+    if (!this.renderer || this.disposed) return;
+    const { frame, realism } = input;
+    const breathing = ((frame.breathing ?? 0.5) - 0.5) * 0.035;
+    this.root.position.y = -0.18 + breathing;
+    this.head.rotation.set(frame.headY * 0.5, frame.headX * 0.6, frame.tilt * 0.45);
+    this.head.position.x = frame.headX * 0.12;
+    this.head.position.y = 0.7 + frame.headY * 0.08;
+    this.torso.rotation.z = (frame.shoulderShift ?? 0) * 0.08;
+    this.torso.position.y = ((frame.posture ?? realism.postureLift) - 0.5) * 0.18;
+
+    const eyeScale = frame.blink ? 0.08 : Math.max(0.45, 1 - (frame.eyeSquint ?? 0.06) * 0.7);
+    if (this.leftLid) this.leftLid.scale.y = eyeScale;
+    if (this.rightLid) this.rightLid.scale.y = eyeScale;
+    const gaze = ((frame.eyeContact ?? 0.65) - 0.5) * 0.08;
+    this.leftEye.rotation.y = gaze;
+    this.rightEye.rotation.y = gaze;
+
+    if (this.mouth) {
+      this.mouth.scale.x = frame.viseme === 'wide' ? 1.18 : frame.viseme === 'round' ? 0.82 : 1;
+      this.mouth.scale.y = 0.32 + Math.min(1, frame.mouthOpen) * 2.4;
+      this.mouth.position.y = -0.43 + frame.smile * 0.04;
+    }
+    if (this.jaw) this.jaw.position.y = -0.27 - (frame.jawOpen ?? 0) * 0.09;
+    for (const [index, brow] of this.brows.entries()) {
+      brow.position.y = 0.22 + (frame.brow ?? 0) * 0.07;
+      brow.rotation.z = (index === 0 ? -1 : 1) * (0.04 + frame.smile * 0.04);
+    }
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  canvas(): HTMLCanvasElement {
+    if (!this.renderer) throw new Error('Renderer is not mounted.');
+    return this.renderer.domElement;
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.resizeObserver?.disconnect();
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.geometry.dispose();
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach((material) => material.dispose());
+      }
+    });
+    this.renderer?.dispose();
+    this.renderer?.domElement.remove();
+  }
+
+  private addLighting(): void {
+    this.scene.add(new THREE.HemisphereLight('#f8fbfa', '#65736f', 1.8));
+    const key = new THREE.DirectionalLight('#fff7ef', 4.4);
+    key.position.set(-3.5, 4.5, 5);
+    key.castShadow = true;
+    this.scene.add(key);
+    const fill = new THREE.DirectionalLight('#b7d9d1', 2.1);
+    fill.position.set(4, 2, 3);
+    this.scene.add(fill);
+    const rim = new THREE.DirectionalLight('#ffffff', 2.3);
+    rim.position.set(0, 3, -4);
+    this.scene.add(rim);
+  }
+
+  private addBackground(background: string): void {
+    const palette = background === 'studio'
+      ? { wall: '#cfd4d5', panel: '#f5f6f6' }
+      : background === 'blur'
+        ? { wall: '#bfcac7', panel: '#dfe8e5' }
+        : background.startsWith('#')
+          ? { wall: background, panel: background }
+          : { wall: '#cdd8d4', panel: '#eef3f1' };
+    this.scene.background = new THREE.Color(palette.wall);
+    this.scene.fog = new THREE.Fog(palette.wall, 7, 12);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 14), new THREE.MeshStandardMaterial({ color: palette.wall, roughness: 1 }));
+    floor.position.set(0, 0, -3.2);
+    this.scene.add(floor);
+    const panelMaterial = new THREE.MeshStandardMaterial({ color: palette.panel, roughness: 0.92 });
+    for (const x of [-3.4, 3.3]) {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(2.2, 4.8, 0.16), panelMaterial);
+      panel.position.set(x, 0.4, -2.7);
+      this.scene.add(panel);
+    }
+  }
+
+  private buildProceduralHuman(asset: AvatarAssetDescriptor): void {
+    const skin = new THREE.MeshPhysicalMaterial({ color: asset.skinTone, roughness: 0.64, sheen: 0.12, clearcoat: 0.04 });
+    const hair = new THREE.MeshStandardMaterial({ color: asset.hairTone, roughness: 0.78 });
+    const jacket = new THREE.MeshPhysicalMaterial({ color: asset.jacketTone, roughness: 0.82, sheen: 0.18 });
+    const shirt = new THREE.MeshStandardMaterial({ color: asset.shirtTone, roughness: 0.74 });
+
+    const shoulders = new THREE.Mesh(new THREE.CapsuleGeometry(1.38, 1.2, 8, 32), jacket);
+    shoulders.scale.set(1.36, 0.78, 0.55);
+    shoulders.position.y = -1.05;
+    this.torso.add(shoulders);
+    const shirtFront = new THREE.Mesh(new THREE.CapsuleGeometry(0.52, 0.72, 8, 24), shirt);
+    shirtFront.scale.set(0.8, 0.9, 0.28);
+    shirtFront.position.set(0, -0.72, 0.48);
+    this.torso.add(shirtFront);
+    this.root.add(this.torso);
+
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.39, 0.72, 32), skin);
+    neck.position.y = 0.1;
+    this.root.add(neck);
+
+    const face = new THREE.Mesh(new THREE.SphereGeometry(0.88, 64, 48), skin);
+    face.scale.set(0.82, 1.08, 0.78);
+    this.head.add(face);
+    const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.64, 48, 32), skin);
+    jaw.scale.set(0.9, 0.62, 0.76);
+    jaw.position.set(0, -0.27, 0.05);
+    this.jaw = jaw;
+    this.head.add(jaw);
+
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.91, 48, 32, 0, Math.PI * 2, 0, Math.PI * 0.54), hair);
+    hairCap.scale.set(0.86, 1.03, 0.8);
+    hairCap.position.y = 0.12;
+    this.head.add(hairCap);
+
+    this.leftEye = this.makeEye(-0.29);
+    this.rightEye = this.makeEye(0.29);
+    this.head.add(this.leftEye, this.rightEye);
+    this.leftLid = this.leftEye.children[0] as THREE.Mesh;
+    this.rightLid = this.rightEye.children[0] as THREE.Mesh;
+
+    const nose = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.18, 8, 18), skin);
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, -0.08, 0.69);
+    this.head.add(nose);
+
+    this.mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.25, 8, 20), new THREE.MeshPhysicalMaterial({ color: '#5b2929', roughness: 0.58 }));
+    this.mouth.rotation.z = Math.PI / 2;
+    this.mouth.position.set(0, -0.43, 0.68);
+    this.head.add(this.mouth);
+
+    for (const x of [-0.29, 0.29]) {
+      const brow = new THREE.Mesh(new THREE.CapsuleGeometry(0.022, 0.25, 6, 16), hair);
+      brow.rotation.z = Math.PI / 2 + (x < 0 ? -0.04 : 0.04);
+      brow.position.set(x, 0.22, 0.68);
+      this.brows.push(brow);
+      this.head.add(brow);
+    }
+
+    this.head.position.y = 0.7;
+    this.root.add(this.head);
+  }
+
+  private makeEye(x: number): THREE.Group {
+    const eye = new THREE.Group();
+    const white = new THREE.Mesh(new THREE.SphereGeometry(0.145, 24, 16), new THREE.MeshPhysicalMaterial({ color: '#f4f1eb', roughness: 0.38 }));
+    white.scale.set(1.18, 0.72, 0.42);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.052, 20, 12), new THREE.MeshPhysicalMaterial({ color: '#283a36', roughness: 0.26, clearcoat: 0.5 }));
+    iris.position.z = 0.12;
+    eye.add(white, iris);
+    eye.position.set(x, 0.04, 0.68);
+    return eye;
+  }
+
+  private async loadProviderModel(modelUrl: string): Promise<void> {
+    try {
+      const gltf = await new GLTFLoader().loadAsync(modelUrl);
+      this.root.clear();
+      gltf.scene.scale.setScalar(1.7);
+      gltf.scene.position.y = -1.65;
+      this.root.add(gltf.scene);
+    } catch {
+      // Procedural avatar remains active when a provider asset cannot load.
+    }
+  }
+
+  private resize(container: HTMLElement): void {
+    if (!this.renderer) return;
+    const width = Math.max(1, container.clientWidth);
+    const height = Math.max(1, container.clientHeight);
+    this.renderer.setSize(width, height, false);
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+  }
 }

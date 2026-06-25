@@ -1,0 +1,2 @@
+import { AnalyticsService, type AnalyticsEventName } from './AnalyticsService';
+export class EventTracker { constructor(private analytics=new AnalyticsService()){} event(name:AnalyticsEventName,properties:Record<string,string|number|boolean>={},sessionId?:string){return this.analytics.track(name,properties,sessionId)} feature(feature:string,action='used'){return this.event('Feature Usage',{feature,action})} }
