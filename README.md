@@ -120,3 +120,13 @@ Analytics are disabled by default and never include raw audio, video, conversati
 The launch candidate adds personalized onboarding, a post-avatar practice walkthrough, Trust Center, System Check, Help Center, Beta Hub, recovery actions, accessibility improvements, expanded founder metrics, and desktop branding.
 
 See [Beta Readiness Report](docs/beta-readiness-report.md), [Beta User Guide](docs/beta-user-guide.md), [Release Notes](docs/release-notes.md), [Known Issues](docs/known-issues.md), and [Founder Launch Checklist](docs/founder-launch-checklist.md).
+
+## Vercel Web Entry
+
+The browser deployment now exposes three routes:
+
+- `/`: public Eidos welcome page
+- `/signup`: closed beta signup
+- `/app`: the local-first Eidos product
+
+`vercel.json` rewrites direct route requests to the Vite application. Set the server-side `EIDOS_BETA_SIGNUP_WEBHOOK_URL` environment variable in Vercel to deliver beta signup JSON to an approved CRM, automation webhook, or intake service. Without it, the form clearly reports that the request was saved locally only.

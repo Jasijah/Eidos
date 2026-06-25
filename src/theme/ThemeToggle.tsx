@@ -1,0 +1,5 @@
+﻿import { Moon, Sun } from 'lucide-react'; import { useEffect, useState } from 'react';
+export type ThemeMode = 'light' | 'dark'; const KEY = 'eidos.theme.v1';
+function initialTheme(): ThemeMode { const stored = localStorage.getItem(KEY); if (stored === 'light' || stored === 'dark') return stored; return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+export function useTheme() { const [theme, setTheme] = useState<ThemeMode>(initialTheme); useEffect(() => { document.documentElement.dataset.theme = theme; document.documentElement.style.colorScheme = theme; localStorage.setItem(KEY, theme); }, [theme]); return { theme, setTheme, toggle: () => setTheme((value) => value === 'dark' ? 'light' : 'dark') }; }
+export function ThemeToggle({ className = '' }: { className?: string }) { const { theme, toggle } = useTheme(); return <button className={`theme-toggle ${className}`} onClick={toggle} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? <Sun size={17}/> : <Moon size={17}/>}</button>; }
