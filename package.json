@@ -16,7 +16,8 @@
     "pack:desktop": "pnpm build:desktop && electron-builder --dir",
     "dist:win": "pnpm build:desktop && electron-builder --win nsis",
     "dist:mac": "pnpm build:desktop && electron-builder --mac dmg",
-    "dist:linux": "pnpm build:desktop && electron-builder --linux AppImage"
+    "dist:linux": "pnpm build:desktop && electron-builder --linux AppImage",
+    "hash:admin": "node --experimental-strip-types scripts/hash-admin-password.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",

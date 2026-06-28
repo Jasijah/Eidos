@@ -1,0 +1,2 @@
+const audiences = ['Remote workers','Recruiters','Sales professionals','Founders','Consultants','Creators','Travelers','Future smart glasses users'];
+export function WhoItsForSection() { return <section className="audience-section" id="who-its-for"><div><p className="public-section-label">Who it is for</p><h2>For people who need to show up without always being on camera.</h2></div><ul>{audiences.map((audience) => <li key={audience}>{audience}</li>)}</ul></section>; }

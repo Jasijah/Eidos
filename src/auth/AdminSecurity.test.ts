@@ -1,0 +1,7 @@
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+// @ts-expect-error Server helper is JavaScript by design for Vercel functions.
+import { configuredAdminEmail, createSession, hashPassword, verifyPassword, verifySession } from '../../api/_lib/admin-auth.js';
+const previous={email:process.env.VITE_EIDOS_ADMIN_EMAIL,hash:process.env.VITE_EIDOS_ADMIN_PASSWORD_HASH};
+beforeEach(()=>{process.env.VITE_EIDOS_ADMIN_EMAIL='jasijahsmith1@gmail.com';process.env.VITE_EIDOS_ADMIN_PASSWORD_HASH=hashPassword('a-secure-admin-password')});
+afterEach(()=>{if(previous.email===undefined)delete process.env.VITE_EIDOS_ADMIN_EMAIL;else process.env.VITE_EIDOS_ADMIN_EMAIL=previous.email;if(previous.hash===undefined)delete process.env.VITE_EIDOS_ADMIN_PASSWORD_HASH;else process.env.VITE_EIDOS_ADMIN_PASSWORD_HASH=previous.hash});
+describe('admin credential security',()=>{it('validates only the configured admin email',()=>{expect(configuredAdminEmail()).toBe('jasijahsmith1@gmail.com')});it('accepts the correct password and rejects an incorrect one',()=>{const hash=hashPassword('a-secure-admin-password');expect(verifyPassword('a-secure-admin-password',hash)).toBe(true);expect(verifyPassword('wrong-password-value',hash)).toBe(false)});it('creates an expiring signed session',()=>{const now=Date.now();const token=createSession('jasijahsmith1@gmail.com',now);expect(verifySession(token,now+1000)?.email).toBe('jasijahsmith1@gmail.com');expect(verifySession(token,now+9*60*60*1000)).toBeUndefined()})});
