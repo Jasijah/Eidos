@@ -1,0 +1,5 @@
+import { ArrowLeft } from 'lucide-react';
+import { EidosLogo } from '../brand/EidosLogo';
+import { BetaSignupForm } from '../components/public/BetaSignupForm';
+import { ThemeToggle } from '../theme/ThemeToggle';
+export function SignupPage({navigate}:{navigate:(path:string)=>void}){return <main className="public-site signup-page"><header className="public-nav"><button className="brand-button" onClick={()=>navigate('/')}><EidosLogo/></button><nav><ThemeToggle/><button className="nav-text-button" onClick={()=>navigate('/')}><ArrowLeft size={15}/>Back to home</button></nav></header><section className="signup-public-shell"><div className="signup-intro"><p className="public-section-label">Limited closed beta</p><h1>Build your Presence.<br/>Keep your voice.</h1><p>Join the first group testing camera-free communication with realistic visual presence and local-first privacy.</p><div className="signup-assurances"><span><b>01</b>No voice cloning</span><span><b>02</b>Local-first data</span><span><b>03</b>Camera off after training</span></div></div><BetaSignupForm/></section></main>}

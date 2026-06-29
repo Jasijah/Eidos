@@ -1,0 +1,2 @@
+import{describe,expect,it}from'vitest';import{calculateBetaMetrics}from'./BetaMetrics';
+describe('BetaMetrics',()=>{it('calculates camera-off adoption and averages',()=>{const result=calculateBetaMetrics([],[{id:'1',startedAt:new Date().toISOString(),durationMs:60000,voiceOnly:true,cameraEnabled:false,averageConfidence:.8,averageNaturalness:.7,averagePresenceQuality:82,frames:1,mode:'professional'}]);expect(result.cameraOffUsagePercent).toBe(100);expect(result.averagePresenceQuality).toBe(82)})})

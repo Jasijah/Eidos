@@ -1,4 +1,4 @@
-# Eidos Product Vision
+﻿# Eidos Product Vision
 
 Eidos is a realistic AI presence layer for people who want to participate in live video calls without always appearing on camera. The product keeps the user's real voice and replaces only the visual feed with a professional human visual stand-in.
 
@@ -34,3 +34,7 @@ Eidos is not voice cloning, not a synthetic speaker, and not a cartoon avatar pr
 ## Long-Term Direction
 
 Eidos should become a trustworthy presence layer for video communication: realistic enough to communicate attention and affect, transparent enough to preserve trust, and private enough for everyday work.
+
+## Commercially Safe MVP Direction
+
+Eidos is a realistic visual presence layer, not a voice-cloning product. Users always speak with their real voice. Uploaded images exist only to create a user-controlled visual identity. Production behavior training accepts only commercially cleared sources and stores normalized nonverbal behavior rather than raw identity.

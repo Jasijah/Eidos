@@ -1,0 +1,5 @@
+﻿import { describe, expect, it } from 'vitest';
+import { clearBehaviorProfile, clearProfile, defaultProfile, loadBehaviorProfile, loadProfile, saveBehaviorProfile, saveProfile } from './storage';
+import { defaultUserBehaviorProfile } from '../presence/UserBehaviorProfile';
+describe('profile persistence',()=>{it('stores optional orientation locally and deletes it with the profile',()=>{const profile={...defaultProfile,sexualOrientation:'bisexual' as const,avatarPresentation:'androgynous' as const};saveProfile(profile);expect(loadProfile()).toMatchObject(profile);expect(clearProfile().sexualOrientation).toBe('prefer-not-to-say');expect(loadProfile().sexualOrientation).toBe('prefer-not-to-say')})});
+describe('behavior profile persistence',()=>{it('round-trips a trained profile through local storage',()=>{const profile={...defaultUserBehaviorProfile,samples:420,trainingSessionCount:2,profileMaturity:'learning' as const,qualityScore:78};saveBehaviorProfile(profile);expect(loadBehaviorProfile()).toMatchObject(profile);clearBehaviorProfile();expect(loadBehaviorProfile().profileMaturity).toBe('untrained')})});

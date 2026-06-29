@@ -1,0 +1,1 @@
+import{describe,expect,it}from'vitest';import{OnboardingStore}from'./OnboardingStore';describe('onboarding flow',()=>{it('progresses through presence education',()=>{localStorage.clear();const store=new OnboardingStore();expect(store.load().completed).toBe(false);store.advance(2);expect(store.load().step).toBe(2);expect(store.complete().completed).toBe(true)})})

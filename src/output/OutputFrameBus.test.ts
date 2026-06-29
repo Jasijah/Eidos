@@ -1,0 +1,3 @@
+﻿import { afterEach, describe, expect, it, vi } from 'vitest';
+import { OutputFrameBus } from './OutputFrameBus';
+describe('output frame bus', () => { const original = globalThis.BroadcastChannel; afterEach(() => { globalThis.BroadcastChannel = original; vi.restoreAllMocks(); }); it('reopens after strict-mode cleanup', () => { const postMessage = vi.fn(), close = vi.fn(); globalThis.BroadcastChannel = vi.fn(() => ({ postMessage, close, addEventListener: vi.fn(), removeEventListener: vi.fn() })) as unknown as typeof BroadcastChannel; const bus = new OutputFrameBus(); bus.close(); bus.publish({} as never); expect(globalThis.BroadcastChannel).toHaveBeenCalledTimes(2); expect(postMessage).toHaveBeenCalledOnce(); }); });

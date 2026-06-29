@@ -1,0 +1,2 @@
+import { BetaSignupForm } from '../components/public/BetaSignupForm';
+export function ClosedBetaSignup({publicMode=false}:{publicMode?:boolean}){if(publicMode)return <BetaSignupForm/>;return <div className="signup-layout"><section><p className="field-label">Join Closed Beta</p><h3>Turn your camera off. Stay present.</h3><p>Your voice stays yours. Eidos never clones voices or speaks for you.</p><div className="signup-proof"><span>Real voice</span><span>Local-first</span><span>Camera-free</span></div></section><BetaSignupForm publicMode={false}/></div>}
