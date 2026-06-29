@@ -23,6 +23,7 @@ Enter a password of at least 12 characters. The prompt masks the password and pr
 VITE_EIDOS_ADMIN_EMAIL=jasijahsmith1@gmail.com
 VITE_EIDOS_ADMIN_PASSWORD_HASH=<output from pnpm hash:admin>
 VITE_EIDOS_PUBLIC_SIGNUP_ONLY=true
+VITE_EIDOS_ADMIN_PASSWORD_CHANGE_REQUIRED=false
 ```
 
 Despite the `VITE_` names required by this project brief, the password hash is read only by Vercel serverless functions. Client code must never reference `VITE_EIDOS_ADMIN_PASSWORD_HASH`.
@@ -44,3 +45,7 @@ Signups are stored in the visitor's local browser for MVP continuity. Configure 
 ## Security boundary
 
 The server validates the email and password hash and signs the session cookie. The browser never receives the password hash. The current app remains a static client application, so production beta data requiring centralized authorization should move to an authenticated backend before broader launch.
+
+## Temporary admin password
+
+For a first login with forced rotation, set VITE_EIDOS_ADMIN_PASSWORD_HASH to the temporary password hash and set VITE_EIDOS_ADMIN_PASSWORD_CHANGE_REQUIRED=true. After signing in, Eidos displays a password-change screen that generates the replacement hash. Update VITE_EIDOS_ADMIN_PASSWORD_HASH, set VITE_EIDOS_ADMIN_PASSWORD_CHANGE_REQUIRED=false, redeploy, then sign in with the new password.

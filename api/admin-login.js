@@ -1,6 +1,7 @@
 import {
   configuredAdminEmail,
   createSession,
+  passwordChangeRequired,
   publicSignupOnly,
   sessionCookie,
   verifyPassword,
@@ -26,6 +27,7 @@ export default function handler(request, response) {
     authenticated: true,
     email,
     expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+    mustChangePassword: passwordChangeRequired(),
     publicSignupOnly: publicSignupOnly(),
   });
 }

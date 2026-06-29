@@ -1,6 +1,7 @@
 import {
   ADMIN_COOKIE,
   parseCookies,
+  passwordChangeRequired,
   publicSignupOnly,
   verifySession,
 } from './_lib/admin-auth.js';
@@ -14,6 +15,7 @@ export default function handler(request, response) {
     authenticated: true,
     email: session.email,
     expiresAt: new Date(session.exp).toISOString(),
+    mustChangePassword: Boolean(session.mustChangePassword) || passwordChangeRequired(),
     publicSignupOnly: publicSignupOnly(),
   });
 }

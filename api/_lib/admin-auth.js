@@ -43,6 +43,10 @@ export function publicSignupOnly() {
   return process.env.VITE_EIDOS_PUBLIC_SIGNUP_ONLY !== 'false';
 }
 
+export function passwordChangeRequired() {
+  return process.env.VITE_EIDOS_ADMIN_PASSWORD_CHANGE_REQUIRED === 'true';
+}
+
 function sessionKey() {
   return process.env.VITE_EIDOS_ADMIN_PASSWORD_HASH ?? '';
 }
@@ -53,6 +57,7 @@ export function createSession(email, now = Date.now()) {
   const payload = encode(JSON.stringify({
     email: email.toLowerCase(),
     exp: now + SESSION_TTL_SECONDS * 1000,
+    mustChangePassword: passwordChangeRequired(),
     nonce: encode(randomBytes(12)),
   }));
   const signature = createHmac('sha256', key).update(payload).digest('base64url');

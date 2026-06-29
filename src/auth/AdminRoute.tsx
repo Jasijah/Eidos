@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AdminAuthService, type AdminSession } from './AdminAuthService';
+import { AdminPasswordChangePage } from '../pages/AdminPasswordChangePage';
 
 export function AdminRoute({
   children,
@@ -25,5 +26,7 @@ export function AdminRoute({
   }, [onDenied, service]);
 
   if (loading) return <main className="auth-loading" aria-live="polite">Verifying admin access...</main>;
-  return session ? children(session) : null;
+  if (!session) return null;
+  if (session.mustChangePassword) return <AdminPasswordChangePage session={session} onLogout={onDenied} />;
+  return children(session);
 }
